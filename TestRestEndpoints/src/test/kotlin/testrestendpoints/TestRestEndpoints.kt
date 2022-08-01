@@ -33,32 +33,33 @@ class TestRestEndpoints {
 
     @Test
     fun `with object mapper`() {
-        // Given
         val username = "Steven"
+
+        // POST /users
+        val contentAsString = objectMapper.writeValueAsString(UserController.PostUserRequest("Steven"))
 
         mvc.perform(
             post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(UserController.PostUserRequest("Steven")))
-        )
-            .andExpect {
-                status().isOk
-            }
+                .content(contentAsString)
+        ).andExpect(status().isOk)
 
+        // GET /users
         val response = mvc.get("/users/$username")
             .andExpect {
                 status { isOk() }
             }.andReturn().response.contentAsString
 
+        // Verify
         val responseObject = objectMapper.readValue(response, GetUserResponse::class.java)
         assertThat(responseObject.username).isEqualTo(username)
     }
 
     @Test
     fun `with string literal`() {
-        // Given
         val username = "Steven"
 
+        // POST /users
         mvc.perform(
             post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -69,11 +70,9 @@ class TestRestEndpoints {
                     }
                 """.trimIndent()
                 )
-        )
-            .andExpect {
-                status().isOk
-            }
+        ).andExpect(status().isOk())
 
+        // GET /users
         mvc.get("/users/$username")
             .andExpect {
                 status { isOk() }

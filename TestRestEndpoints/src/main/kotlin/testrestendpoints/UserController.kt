@@ -12,7 +12,6 @@ class UserController {
 
     @PostMapping("/users")
     fun postUser(@RequestBody request: PostUserRequest) {
-
     }
 
     data class GetUserResponse(
