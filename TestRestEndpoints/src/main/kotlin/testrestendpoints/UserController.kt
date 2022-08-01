@@ -6,18 +6,21 @@ import java.util.*
 @RestController()
 class UserController {
 
+    data class PostUserRequest(
+        val username: String
+    )
+
     @PostMapping("/users")
-    fun postUser(@RequestParam("username", required = true) userName: String) {
-        userName
+    fun postUser(@RequestBody request: PostUserRequest) {
     }
+
+    data class GetUserResponse(
+        val id: UUID,
+        val username: String
+    )
 
     @GetMapping("/users/{username}")
-    fun getUser(@PathVariable("username") username: String): UserView {
-        return UserView(UUID.randomUUID(), username)
+    fun getUser(@PathVariable("username") username: String): GetUserResponse {
+        return GetUserResponse(UUID.randomUUID(), username)
     }
 }
-
-data class UserView(
-    val id: UUID,
-    val username: String
-)
