@@ -3,6 +3,7 @@ package testrestendpoints
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -19,21 +20,28 @@ class TestRestEndpoints {
     @Autowired
     private lateinit var mvc: MockMvc
 
-    @Test
-    fun `with object mapper`() {
-        // Given
-        val username = "Steven"
+    private lateinit var objectMapper: ObjectMapper
+
+    @BeforeEach
+    fun setup() {
         val kotlinModule = KotlinModule
             .Builder()
             .build()
 
-        val mapper = ObjectMapper().registerModule(kotlinModule)
+        objectMapper = ObjectMapper().registerModule(kotlinModule)
+    }
+
+    @Test
+    fun `with object mapper`() {
+        // Given
+        val username = "Steven"
+
 
         mvc.perform(
             post("/users")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(UserController.PostUserRequest("Steven")))
+                .content(objectMapper.writeValueAsString(UserController.PostUserRequest("Steven")))
         )
             .andExpect {
                 status().isOk
@@ -44,7 +52,7 @@ class TestRestEndpoints {
                 status { isOk() }
             }.andReturn().response.contentAsString
 
-        val responseObject = mapper.readValue(response, GetUserResponse::class.java)
+        val responseObject = objectMapper.readValue(response, GetUserResponse::class.java)
         assertThat(responseObject.username).isEqualTo(username)
     }
 
