@@ -1,6 +1,8 @@
 package testrestendpoints
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -9,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import testrestendpoints.UserController.GetUserResponse
 
 @WebMvcTest(UserController::class)
 class TestRestEndpoints {
@@ -20,13 +23,45 @@ class TestRestEndpoints {
     fun `with object mapper`() {
         // Given
         val username = "Steven"
-        val mapper = ObjectMapper()
+        val kotlinModule = KotlinModule
+            .Builder()
+            .build()
+
+        val mapper = ObjectMapper().registerModule(kotlinModule)
 
         mvc.perform(
-            post("/mockmvc/validate")
+            post("/users")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(UserController.PostUserRequest("Steven")))
+        )
+            .andExpect {
+                status().isOk
+            }
+
+        val response = mvc.get("/users/$username")
+            .andExpect {
+                status { isOk() }
+            }.andReturn().response.contentAsString
+
+        val responseObject = mapper.readValue(response, GetUserResponse::class.java)
+        assertThat(responseObject.username).isEqualTo(username)
+    }
+
+    @Test
+    fun `with string literal`() {
+        // Given
+        val username = "Steven"
+
+        mvc.perform(
+            post("/users")
+                .content(
+                    """
+                    {
+                    username: $username
+                    }
+                """.trimIndent()
+                )
         )
             .andExpect {
                 status().isOk
